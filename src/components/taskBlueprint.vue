@@ -23,6 +23,50 @@
 
 
 <script lang="ts" setup>
+
+// get tree data from backend
+import api_request from '@/util/api';
+
+const treeData = ref([])
+const data_params = {
+    'task_id':'c764656b684d4bd08827ca45057751c5'
+}
+
+
+const keymapping = {
+    id:'key',
+    name:'title',
+    child_task:'children'
+}
+function mapTreeData(node:any, mapping: any){
+    if (!node) return [];
+
+    Object.keys(mapping).forEach(key => {
+        // console.log('node:',node)
+        // console.log('key:',key)
+        // console.log('node key:', node[key])
+        if (node[key] !== undefined) {
+            node[mapping[key]] = node[key];
+            delete node[key];
+        }
+    });
+
+    if (node.children && node.children.length) {
+        node.children.forEach((child:any) => mapTreeData(child, mapping));
+    }
+}
+
+api_request.TaskBlueprint.list(data_params).then((rets:any) => {
+    const org_data = rets.data.task_tree
+    // console.log('org_data:',org_data)
+    mapTreeData(org_data, keymapping);
+    
+    treeData.value = org_data
+    console.log('treeData:', treeData.value)
+})
+
+
+
 import type {
     AntTreeNodeDragEnterEvent,
     AntTreeNodeDropEvent,
@@ -34,8 +78,17 @@ import { ref } from 'vue';
 const x = 3;
 const y = 2;
 const z = 1;
-const genData: DataNode[];
+const genData: DataNode[]=[];
 
+// [
+//     {
+//         'key':'',
+//         'title':'',
+//         'children':[],
+//     }
+// ]
+
+// generate tree data
 const generateData = (_level: number, _preKey?: string, _tns?: TreeProps['treeData']) => {
     const preKey = _preKey || '0';
     const tns = _tns || genData;
@@ -45,7 +98,7 @@ const generateData = (_level: number, _preKey?: string, _tns?: TreeProps['treeDa
         const key = `${preKey}-${i}`;
         tns.push({ title: key, key });
         if (i < y) {
-        children.push(key);
+            children.push(key);
         }
     }
     if (_level < 0) {
@@ -60,6 +113,10 @@ const generateData = (_level: number, _preKey?: string, _tns?: TreeProps['treeDa
 generateData(z);
 type TreeDataItem = TreeProps['treeData'][number];
 const gData = ref<TreeProps['treeData']>(genData);
+// const newTreeData = ref<TreeProps['treeData']>(treeData);
+// const gData = treeData.children
+console.log('genData:',genData)
+console.log('gData:',gData)
 const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
     console.log(info);
     // expandedKeys 需要展开时
@@ -74,12 +131,12 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
     const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
     const loop = (data: TreeProps['treeData'], key: string | number, callback: any) => {
         data.forEach((item, index) => {
-        if (item.key === key) {
-            return callback(item, index, data);
-        }
-        if (item.children) {
-            return loop(item.children, key, callback);
-        }
+            if (item.key === key) {
+                return callback(item, index, data);
+            }
+            if (item.children) {
+                return loop(item.children, key, callback);
+            }
         });
     };
     const data = [...gData.value];
