@@ -71,6 +71,7 @@ api_request.TaskBlueprint.list(data_params).then((rets:any) => {
     rootTaskID = org_data.key
     treeData.value = org_data.children
     console.log('treeData:', org_data.children)
+
 })
 
 // console.log('treeData1:', treeData.value)
@@ -87,12 +88,31 @@ const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
 const onDrop = (info: AntTreeNodeDropEvent) => {
     console.log('Drop:',info);
 
+    // const params = {
+    //    'task_id':info.dragNode.key,
+    //    'parent_task_id':info.node.key,
+    // }
+
+    // find act root
+    // if (info.node.parent?.key == rootId && info.dropToGap == true) {
+    //     params.parent_task_id = rootId
+    // }
+    // console.log('update info:',params);
+    // api_request.TaskBlueprint.update(
+    //     params
+    // ).then()
+
+    // console.log('parent Id:',params.parent_task_id)
+    // console.log('task id:', params.task_id)
+    // console.log('dropToGap:', info.dropToGap)
+
     // const drop_params = {
     //     'task_id': info.node.key,
     //     'parent_task_id': info.bnnnnnnnnnn 
     // }
 
     // api_request.TaskBlueprint update()
+
 
     const dropKey = info.node.key;
     const dragKey = info.dragNode.key;
