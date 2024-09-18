@@ -4,6 +4,24 @@
         蓝图在这里显示
     </div>
 
+    <div>
+        这里是任务列表相关的操作，添加删除任务等
+        <br>
+        <br>
+        <button @click="addTask">
+            添加任务
+        </button>
+        <button @click="delTask">
+            删除任务
+        </button>
+        <button @click="addSubTask">
+            添加子任务
+        </button>
+    </div>
+
+    <br>
+    <br>
+
     <div class="taskList">
         这里是任务列表
     
@@ -177,6 +195,20 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
     }
     treeData.value = data;
 };
+
+
+function addTask(){
+    console.log('addTask')
+}
+
+function addSubTask(){
+    console.log('addSubTask')
+}
+
+function delTask(){
+    console.log('delTask')
+}
+
 </script>
   
   
