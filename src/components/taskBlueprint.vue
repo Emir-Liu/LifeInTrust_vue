@@ -33,9 +33,10 @@ import type {
 } from 'ant-design-vue/es/tree';
 import { ref } from 'vue';
 
+const rootId = '739b1d69-0b87-4b72-a7f1-3790594777b0'
 
 const data_params = {
-    'task_id':'c764656b684d4bd08827ca45057751c5'
+    'task_id':rootId
 }
 const treeData = ref<TreeProps['treeData']>();
 
@@ -68,7 +69,8 @@ api_request.TaskBlueprint.list(data_params).then((rets:any) => {
     mapTreeData(org_data, keymapping);
     
     treeData.value = org_data.children
-    console.log('org_data:', org_data.children)
+    console.log('treeData:', org_data.children)
+    console.log('len:', treeData.value?.length)
 })
 
 console.log('treeData1:', treeData.value)
@@ -79,11 +81,30 @@ type TreeDataItem = TreeProps['treeData'][number];
 const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
     console.log('DragEnter:',info);
     // expandedKeys 需要展开时
-    expandedKeys.value = info.expandedKeys;
+    // expandedKeys.value = info.expandedKeys;
 };
 
 const onDrop = (info: AntTreeNodeDropEvent) => {
     console.log('Drop:',info);
+    const params = {
+        'task_id':info.dragNode.key,
+        'parent_task_id':info.node.key,
+    }
+
+    // find act root
+    if (info.node.parent?.key == rootId && info.dropToGap == true) {
+        params.parent_task_id = rootId
+    }
+    console.log('update info:',params);
+    api_request.TaskBlueprint.update(
+        params
+    ).then()
+
+    console.log('parent Id:',params.parent_task_id)
+    console.log('task id:', params.task_id)
+    console.log('dropToGap:', info.dropToGap)
+    
+
     const dropKey = info.node.key;
     const dragKey = info.dragNode.key;
     const dropPos = info.node.pos.split('-');
