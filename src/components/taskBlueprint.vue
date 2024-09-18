@@ -4,6 +4,24 @@
         蓝图在这里显示
     </div>
 
+    <div>
+        这里是任务列表相关的操作，添加删除任务等
+        <br>
+        <br>
+        <button @click="addTask">
+            添加任务
+        </button>
+        <button @click="delTask">
+            删除任务
+        </button>
+        <button @click="addSubTask">
+            添加子任务
+        </button>
+    </div>
+
+    <br>
+    <br>
+
     <div class="taskList">
         这里是任务列表
     
@@ -71,6 +89,7 @@ api_request.TaskBlueprint.list(data_params).then((rets:any) => {
     rootTaskID = org_data.key
     treeData.value = org_data.children
     console.log('treeData:', org_data.children)
+
 })
 
 // console.log('treeData1:', treeData.value)
@@ -88,8 +107,32 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
     console.log('Drop:',info);
 
 
+    // const params = {
+    //    'task_id':info.dragNode.key,
+    //    'parent_task_id':info.node.key,
+    // }
+
+    // find act root
+    // if (info.node.parent?.key == rootId && info.dropToGap == true) {
+    //     params.parent_task_id = rootId
+    // }
+    // console.log('update info:',params);
+    // api_request.TaskBlueprint.update(
+    //     params
+    // ).then()
+
+    // console.log('parent Id:',params.parent_task_id)
+    // console.log('task id:', params.task_id)
+    // console.log('dropToGap:', info.dropToGap)
+
+    // const drop_params = {
+    //     'task_id': info.node.key,
+    //     'parent_task_id': info.bnnnnnnnnnn 
+    // }
+
 
     // api_request.TaskBlueprint update()
+
 
     const dropKey = info.node.key;
     const dragKey = info.dragNode.key;
@@ -185,6 +228,20 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
     }
     treeData.value = data;
 };
+
+
+function addTask(){
+    console.log('addTask')
+}
+
+function addSubTask(){
+    console.log('addSubTask')
+}
+
+function delTask(){
+    console.log('delTask')
+}
+
 </script>
   
   
