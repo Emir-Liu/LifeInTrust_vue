@@ -87,22 +87,50 @@ const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
 const onDrop = (info: AntTreeNodeDropEvent) => {
     console.log('Drop:',info);
 
-    // const drop_params = {
-    //     'task_id': info.node.key,
-    //     'parent_task_id': info.bnnnnnnnnnn 
-    // }
+
 
     // api_request.TaskBlueprint update()
 
     const dropKey = info.node.key;
     const dragKey = info.dragNode.key;
     const dropPos = info.node.pos.split('-');
+    const org_dropPosition = info.dropPosition
+    const minus = Number(dropPos[dropPos.length - 1])
     const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
-    console.log('dropKey:', dropKey)
-    console.log('dragKey:', dragKey)
-    console.log('dropPos:', dropPos)
-    console.log('dropPosition:', dropPosition)
+    const drop_params = {
+        'task_id': dragKey,
+        'parent_task_id': dropKey,
+    }
+
+    // console.log('dropKey:', dropKey)
+    // console.log('dragKey:', dragKey)
+    // console.log('dropPos:', dropPos)
+    console.log('dropPosition(-1表示移动到目标节点上面，1表示移动到目标节点下面，0表示移动到目标节点的子节点):', dropPosition)
+    console.log('被拖拽节点:', info.dragNode.title )
+    console.log('拖拽到节点:', info.node.title)
+    // console.log('org drop position', org_dropPosition)
+    // console.log('minus:', minus)
+    console.log('drop to gap是否移到子节点(false为移动到子节点，true表示同级):', info.dropToGap)
+    // // 推拽到根节点下
+    // if (dropPosition == -1) {
+    //     drop_params.parent_task_id = rootTaskID
+    // }
+    // // if ()
+    // dropPosition:-1表示移动到目标节点上面，1表示移动到目标节点下面，0表示移动到目标节点的子节点
+    // 对第一层child节点下面的节点进行操作
+    if(dropPosition == -1){
+        drop_params.parent_task_id = info.node.parent_task_id
+    }
+    if(dropPosition == 0){
+        drop_params.parent_task_id = info.node.key
+    }
+    if(dropPosition == 1){
+        drop_params.parent_task_id = info.node.parent_task_id
+    }
+    api_request.TaskBlueprint.update(drop_params)
+
+
     const loop = (data: TreeProps['treeData'], key: string | number, callback: any) => {
         data.forEach((item, index) => {
             if (item.key === key) {
