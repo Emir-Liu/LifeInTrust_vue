@@ -32,10 +32,29 @@
             :tree-data="treeData"
             @dragenter="onDragEnter"
             @drop="onDrop"
+            @select="onSelect"
         />
     </div>
     <div>
         这里是对任务的配置
+        <div v-if="showAddTask">
+            任务名称：
+            <a-input v-model:value="addTaskName" placeholder="输入任务名称" />
+
+            <div v-if="addTaskParent">
+                父任务名称:{{ addTaskParent }}
+            </div>
+            
+
+
+            <button @click="confirmAddTask(addTaskParent)">确认添加任务</button>
+        </div>
+        <div v-else>
+            <br>
+            <br>
+            请安排你的任务
+        </div>
+
     </div>
  </template>
 
@@ -53,6 +72,15 @@ import { ref } from 'vue';
 
 let rootTaskID = ''
 
+let addTaskName = ref('')
+
+let addTaskParent = ref('')
+
+let selectTaskKey = ref('')
+
+
+let showAddTask = ref(false)
+
 const data_params = {
     'task_id': ''
 }
@@ -63,6 +91,7 @@ const keymapping = {
     name:'title',
     child_task:'children'
 }
+
 function mapTreeData(node:any, mapping: any){
     if (!node) return [];
 
@@ -82,15 +111,19 @@ function mapTreeData(node:any, mapping: any){
 }
 
 // const 
-api_request.TaskBlueprint.list(data_params).then((rets:any) => {
-    const org_data = rets.data.task_tree
-    console.log('org_data:',org_data)
-    mapTreeData(org_data, keymapping);
-    rootTaskID = org_data.key
-    treeData.value = org_data.children
-    console.log('treeData:', org_data.children)
+function updateTaskTree() {
+    api_request.TaskBlueprint.list(data_params).then((rets:any) => {
+        const org_data = rets.data.task_tree
+        console.log('org_data:',org_data)
+        mapTreeData(org_data, keymapping);
+        rootTaskID = org_data.key
+        treeData.value = org_data.children
+        console.log('treeData:', org_data.children)
 
-})
+    })
+}
+
+updateTaskTree();
 
 // console.log('treeData1:', treeData.value)
 
@@ -104,41 +137,10 @@ const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
 };
 
 const onDrop = (info: AntTreeNodeDropEvent) => {
-    console.log('Drop:',info);
-
-
-    // const params = {
-    //    'task_id':info.dragNode.key,
-    //    'parent_task_id':info.node.key,
-    // }
-
-    // find act root
-    // if (info.node.parent?.key == rootId && info.dropToGap == true) {
-    //     params.parent_task_id = rootId
-    // }
-    // console.log('update info:',params);
-    // api_request.TaskBlueprint.update(
-    //     params
-    // ).then()
-
-    // console.log('parent Id:',params.parent_task_id)
-    // console.log('task id:', params.task_id)
-    // console.log('dropToGap:', info.dropToGap)
-
-    // const drop_params = {
-    //     'task_id': info.node.key,
-    //     'parent_task_id': info.bnnnnnnnnnn 
-    // }
-
-
-    // api_request.TaskBlueprint update()
-
 
     const dropKey = info.node.key;
     const dragKey = info.dragNode.key;
     const dropPos = info.node.pos.split('-');
-    const org_dropPosition = info.dropPosition
-    const minus = Number(dropPos[dropPos.length - 1])
     const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
     const drop_params = {
@@ -146,20 +148,6 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
         'parent_task_id': dropKey,
     }
 
-    // console.log('dropKey:', dropKey)
-    // console.log('dragKey:', dragKey)
-    // console.log('dropPos:', dropPos)
-    console.log('dropPosition(-1表示移动到目标节点上面，1表示移动到目标节点下面，0表示移动到目标节点的子节点):', dropPosition)
-    console.log('被拖拽节点:', info.dragNode.title )
-    console.log('拖拽到节点:', info.node.title)
-    // console.log('org drop position', org_dropPosition)
-    // console.log('minus:', minus)
-    console.log('drop to gap是否移到子节点(false为移动到子节点，true表示同级):', info.dropToGap)
-    // // 推拽到根节点下
-    // if (dropPosition == -1) {
-    //     drop_params.parent_task_id = rootTaskID
-    // }
-    // // if ()
     // dropPosition:-1表示移动到目标节点上面，1表示移动到目标节点下面，0表示移动到目标节点的子节点
     // 对第一层child节点下面的节点进行操作
     if(dropPosition == -1){
@@ -229,17 +217,82 @@ const onDrop = (info: AntTreeNodeDropEvent) => {
     treeData.value = data;
 };
 
+function onSelect(selectedKeys: any,e: any) {
+    console.log('onSelect')
+    console.log('selectedKeys:', selectedKeys)
+    console.log('e:',e)
+    selectTaskKey.value = e.node.key
+    // addTaskParent.value = e.node.parent_task_id
+
+    showAddTask.value = false
+}
+
+function cleanSelect() {
+
+}
 
 function addTask(){
     console.log('addTask')
+    showAddTask.value = true
+    addTaskParent.value = ''
+    console.log('addTaskParent.value:',addTaskParent.value)
+    selectTaskKey.value = ''
+    addTaskName.value = ''
 }
 
 function addSubTask(){
     console.log('addSubTask')
+    if (selectTaskKey.value != '') {
+        addTaskParent.value = selectTaskKey.value
+        showAddTask.value = true
+        console.log('addTaskParent.value:',addTaskParent.value)
+        addTaskName.value = ''
+    }
+    else {
+        console.log('没有选择子任务')
+    }
 }
 
 function delTask(){
     console.log('delTask')
+    if (selectTaskKey.value != '') {
+        const params = {
+            'task_id': selectTaskKey.value
+        }
+        api_request.TaskBlueprint.delete(params).then(() => {
+            console.log('成功删除任务')
+            updateTaskTree()
+            selectTaskKey.value = ''
+        }
+
+        )
+    }
+}
+
+
+function confirmAddTask(parent_task_id:string){
+    console.log('confirmAddTask')
+    console.log('taskname:', addTaskName.value)
+    console.log('parent_task_id:',parent_task_id)
+    if (parent_task_id === '') {
+        console.log('parent_task_id === ')
+        parent_task_id = rootTaskID
+    }
+    if (addTaskName.value != '') {
+        const params = {
+            'task_name': addTaskName.value,
+            'parent_task_id': parent_task_id,
+            'user_id':''
+        }
+        console.log('params:',params)
+        api_request.TaskBlueprint.add(params).then(() => {
+            console.log('添加任务成功')
+            updateTaskTree();
+            showAddTask.value = false
+            // selectTaskKey.value = ''
+        }
+        )
+    }
 }
 
 </script>
